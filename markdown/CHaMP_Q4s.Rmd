@@ -1,30 +1,85 @@
 ---
 title: "CHaMP_Q4s"
-author: "Mike Ackerman"
-date: "3/17/2020"
-output: html_document
+author:
+  - name: Mike Ackerman
+    affiliation: Biomark, Inc.
+    email: mike.ackerman@merck.com
+  - name: Kevin See
+    affiliation: Biomark, Inc.
+    email: kevin.see@merck.com
+  - name: Richie Carmichael
+    affiliation: Biomark, Inc.
+    email: richard.carmichael@merck.com
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+  bookdown::html_document2:
+    smart: false
+    theme: flatly
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    fig_height: 6
+    fig_width: 8
+    pandoc_args:
+      - --lua-filter=../templates/scholarly-metadata.lua
+      - --lua-filter=../templates/author-info-blocks.lua
+      - --lua-filter=../templates/pagebreak.lua
+  bookdown::pdf_document2:
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
+    pandoc_args:
+      - --lua-filter=../templates/scholarly-metadata.lua
+      - --lua-filter=../templates/author-info-blocks2.lua
+      - --lua-filter=../templates/pagebreak.lua
+  bookdown::word_document2:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7
+    toc: yes
+    pandoc_args:
+      - --lua-filter=../templates/scholarly-metadata.lua
+      - --lua-filter=../templates/author-info-blocks.lua
+      - --lua-filter=../templates/pagebreak.lua
+    reference_docx: "../templates/ReportTemplate.docx"
+institute:
+  - biomark: Biomark, Inc.
+csl: "../templates/american-fisheries-society.csl"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, echo = F, message = F, warning = F, results = 'hide'}
+# load knitr for markdown
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = F)
+
+# load necessary libraries
+library(ggplot2)
+
+# themes and settings
+theme_set(theme_bw())
+
 ```
 
-## R Markdown
+# Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Introduction text...
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Objectives
 
-```{r cars}
-summary(cars)
-```
+Objective text...
 
-## Including Plots
+# Methods
 
-You can also embed plots, for example:
+Methods text...
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+# Results
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Results text...
+
+# Discussion
+
+Discussion text...
+
+# Literature Cited
+
