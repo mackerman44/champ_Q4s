@@ -22,7 +22,7 @@ loadRData = function(fileName) {
   get(ls()[ls() != "fileName"])
 }
 
-chnk_win_df = loadRData("../QRFcapacity/data/fh_win_champ_2017.rda")
+fh_win_champ_2017 = loadRData("../QRFcapacity/data/fh_win_champ_2017.rda")
 #data("fh_win_champ_2017") # paired redd/CHaMP habitat data through 2017
 
 # The fish-habitat summer CHaMP data frame contains data for chinook and steelhead. Let's just look at Chinook for now.
