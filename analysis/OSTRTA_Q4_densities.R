@@ -26,8 +26,8 @@ library(janitor)
 
 #------------------------------
 # set parameters
-spc = "chnk"         # species: either "chnk" or "sthd"
-ls  = "sum"          # life_stage: "sum" summer parr; "win" winter presmolt; "spw" spawning (redds)
+spc = "sthd"         # species: either "chnk" or "sthd"
+ls  = "spw"          # life_stage: "sum" summer parr; "win" winter presmolt; "spw" spawning (redds)
 
 #------------------------------
 # load data
@@ -474,4 +474,49 @@ for(d in 1:length(df_list)) {
 } # end data frame loop
 
 # let's look at the # of significant comparisons by habitat covariate
-sig_tst_results = 
+alpha = 0.1
+sig_tst_results = tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+sig_tst_results
+ggsave(paste0("figures/", spc, "_", ls, "_significant_comps.png"))
+
+# 'raw' p-values by habitat covariate
+# raw_wcx_p = tst_results %>%
+#   ggplot(aes(x = p_value)) +
+#   geom_histogram(bins = 10) +
+#   theme_bw() +
+#   facet_wrap(~ hab_cov)
+# raw_wcx_p
+
+# plot meadian and mean p-values
+p_val_p = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
+p_val_p
+ggsave(paste0("figures/", spc, "_", ls, "_p_values.png"))
