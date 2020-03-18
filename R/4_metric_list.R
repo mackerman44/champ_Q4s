@@ -18,17 +18,17 @@ metric_list = function(ls) {
     undercuts = c("Ucut_Area",  "UcutLgth_Pct", "UcutArea_Pct")
     fish_cover = c("FishCovLW", "FishCovTVeg", "FishCovArt", "FishCovNone", "FishCovAqVeg", "FishCovTotal")
     
-    metric_list = list(size = size, 
-                     pca = pca, 
-                     channel_units = channel_units, 
-                     complexity = complexity, 
-                     side_channel = side_channel, 
-                     substrate = substrate, 
-                     other = other,
-                     riparian_cover = riparian_cover, 
-                     large_wood = large_wood, 
-                     undercuts = undercuts, 
-                     fish_cover = fish_cover)
+    metrics = list(size = size, 
+                   pca = pca, 
+                   channel_units = channel_units, 
+                   complexity = complexity, 
+                   side_channel = side_channel, 
+                   substrate = substrate, 
+                   other = other,
+                   riparian_cover = riparian_cover, 
+                   large_wood = large_wood, 
+                   undercuts = undercuts, 
+                   fish_cover = fish_cover)
   }
   
   # Winter presmolt
@@ -39,13 +39,13 @@ metric_list = function(ls) {
     substrate = c('SubEstBdrk', 'SubEstBldr', 'SubEstCbl', 
                   'SubEstGrvl', 'SubEstSandFines', 'SubEstCandBldr', 'SubD50')
     undercut = c('n_UC', 'Ucut_Length', 'Ucut_Area', 'UcutArea_Pct')
-    other = c('Sin', 'CU_Freq', 'Discharge', 'Temp', 'LWCount', 'LWDens')
+    other = c('Sin', 'CU_Freq', 'Discharge', 'Temp', 'LWCount')
     
-    metric_list = list(depth = depth,
-                     fish_cover = fish_cover,
-                     substrate = substrate,
-                     undercut = undercut,
-                     other = other)
+    metrics = list(depth = depth,
+                   fish_cover = fish_cover,
+                   substrate = substrate,
+                   undercut = undercut,
+                   other = other)
   }
   
   # Spawning
@@ -70,19 +70,19 @@ metric_list = function(ls) {
     fish_cover = c('FishCovLW', 'FishCovTVeg', 'FishCovArt', 'FishCovNone',
                    'FishCovAqVeg', 'FishCovTotal')
     
-    metric_list = list(size = size, 
-                     pca = pca, 
-                     channel_units = channel_units, 
-                     complexity = complexity, 
-                     side_channel = side_channel, 
-                     substrate = substrate, 
-                     other = other,
-                     riparian_cover = riparian_cover, 
-                     large_wood = large_wood, 
-                     undercuts = undercuts, 
-                     fish_cover = fish_cover)
+    metrics = list(size = size, 
+                   pca = pca, 
+                   channel_units = channel_units, 
+                   complexity = complexity, 
+                   side_channel = side_channel, 
+                   substrate = substrate, 
+                   other = other,
+                   riparian_cover = riparian_cover, 
+                   large_wood = large_wood, 
+                   undercuts = undercuts, 
+                   fish_cover = fish_cover)
   }
   
-  return(metric_list)
+  return(metrics)
 
 }

@@ -134,25 +134,350 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
 
 # generate lists for evaluation & plotting
-metric_list = metric_list(ls = ls)
+metrics = metric_list(ls = ls)
 
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metric_list)
+tst_results = wlcx_rs_test(df_list, metrics)
+
+# let's look at the # of significant comparisons by habitat covariate
+alpha = 0.1
+tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+
+# plot meadian and mean p-values
+tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
 
 ```
 
-
 ### Winter presmolt
 
+```{r chnk-win}
+# set parameters
+spc = "chnk"
+ls  = "win"
+
+# load data
+ls_df = load_data(ls)
+
+# clean, reduce data
+spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
+
+# parse data by watershed, channel unit type, and/or tier 1
+df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+
+# generate lists for evaluation & plotting
+metrics = metric_list(ls = ls)
+
+# compare means by dataset and habitat covariate
+tst_results = wlcx_rs_test(df_list, metrics)
+
+# let's look at the # of significant comparisons by habitat covariate
+alpha = 0.1
+tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+
+# plot meadian and mean p-values
+tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
+
+```
+
 ### Redds
+
+```{r chnk-spw}
+# set parameters
+spc = "chnk"
+ls  = "spw"
+
+# load data
+ls_df = load_data(ls)
+
+# clean, reduce data
+spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
+
+# parse data by watershed, channel unit type, and/or tier 1
+df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+
+# generate lists for evaluation & plotting
+metrics = metric_list(ls = ls)
+
+# compare means by dataset and habitat covariate
+tst_results = wlcx_rs_test(df_list, metrics)
+
+# let's look at the # of significant comparisons by habitat covariate
+alpha = 0.1
+tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+
+# plot meadian and mean p-values
+tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
+
+```
 
 ## Steelhead
 
 ### Summer parr
 
+```{r sthd-sum}
+# set parameters
+spc = "sthd"
+ls  = "sum"
+
+# load data
+ls_df = load_data(ls)
+
+# clean, reduce data
+spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
+
+# parse data by watershed, channel unit type, and/or tier 1
+df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+
+# generate lists for evaluation & plotting
+metrics = metric_list(ls = ls)
+
+# compare means by dataset and habitat covariate
+tst_results = wlcx_rs_test(df_list, metrics)
+
+# let's look at the # of significant comparisons by habitat covariate
+alpha = 0.1
+tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+
+# plot meadian and mean p-values
+tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
+
+```
+
 ### Winter presmolt
 
+```{r sthd-win}
+# set parameters
+spc = "sthd"
+ls  = "win"
+
+# load data
+ls_df = load_data(ls)
+
+# clean, reduce data
+spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
+
+# parse data by watershed, channel unit type, and/or tier 1
+df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+
+# generate lists for evaluation & plotting
+metrics = metric_list(ls = ls)
+
+# compare means by dataset and habitat covariate
+tst_results = wlcx_rs_test(df_list, metrics)
+
+# let's look at the # of significant comparisons by habitat covariate
+alpha = 0.1
+tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+
+# plot meadian and mean p-values
+tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
+
+```
+
 ### Redds
+
+```{r sthd-spw}
+# set parameters
+spc = "sthd"
+ls  = "spw"
+
+# load data
+ls_df = load_data(ls)
+
+# clean, reduce data
+spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
+
+# parse data by watershed, channel unit type, and/or tier 1
+df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+
+# generate lists for evaluation & plotting
+metrics = metric_list(ls = ls)
+
+# compare means by dataset and habitat covariate
+tst_results = wlcx_rs_test(df_list, metrics)
+
+# let's look at the # of significant comparisons by habitat covariate
+alpha = 0.1
+tst_results %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  ungroup() %>%
+  filter(sig_dfs > 0) %>%
+  #arrange(desc(sig_dfs)) %>%
+  ggplot(aes(x = reorder(hab_cov, sig_dfs),
+             y = sig_dfs)) +
+  geom_col(fill = "steelblue4") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "# of Significant Comparisons",
+       title = paste(spc, ls))
+
+# plot meadian and mean p-values
+tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(mn_p = mean(p_value, na.rm = T),
+            md_p = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  gather(key, value, mn_p:md_p) %>%
+  ggplot(aes(x = reorder(hab_cov, -value),
+             y = value)) +
+  geom_col(fill = "steelblue4") +
+  geom_hline(yintercept = alpha, color = "red") +
+  theme_bw() +
+  coord_flip() +
+  labs(x = "Habitat Covariate",
+       y = "p",
+       title = paste(spc, ls)) +
+  facet_wrap(~ key)
+
+```
 
 # Discussion
 

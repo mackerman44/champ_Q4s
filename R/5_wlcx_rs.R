@@ -1,8 +1,8 @@
 # compare means by dataset and habitat covariate
-wlcx_rs_test = function(df_list = df_list, metric_list = metric_list) {
+wlcx_rs_test = function(df_list = df_list, metrics = metrics) {
   
   # list of habitat covariates
-  hab_list = unlist(unique(metric_list[1:length(metric_list)]))
+  hab_list = unlist(unique(metrics[1:length(metrics)]))
   
   # initiate blank df to store the results
   tst_results = setNames(data.frame(matrix(ncol = 3, nrow = length(df_list) * length(hab_list))),
