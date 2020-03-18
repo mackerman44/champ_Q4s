@@ -1,5 +1,5 @@
 ---
-title: "CHaMP_Q4s"
+title: "Mining high density juvenile fish and redd sites in the ISEMP/CHaMP dataset; do particular habitat characteristics stick out in areas with lots of fish/redds?"
 author:
   - name: Mike Ackerman
     affiliation: Biomark, Inc.
@@ -54,7 +54,9 @@ library(knitr)
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = F)
 
 # load necessary libraries
+library(tidyverse)
 library(ggplot2)
+library(janitor)
 
 # themes and settings
 theme_set(theme_bw())
@@ -63,13 +65,23 @@ theme_set(theme_bw())
 
 # Introduction
 
-Introduction text...
+The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analysis in support of future project identification, prioritization and design in the Upper Salmon Subbasin, Idaho. The goal is stream and riparian habitat rehabilitation to support recovery of imperiled Chinook salmon and steelhead populations. The biologic and geomorphic analyses are being lead by Biomark, Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Previous efforts from the team identified the "problem" within the target watersheds (IRA; Idaho OSC Team 2019). The second phase, termed the Multiple REach Assessments (MRA), includes identifying appropriate and focused "solutions" to the identified capacity problems. To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat, its creation, and its maintenance to inform future rehabilitation actions.
+
+One of the primary goals of the MRA is to identify target or preferred conditions from a fish's perspective to later translate those into appropriate, target geomorphic conditions. Here, we mine an existing paired fish-habitat dataset from the Columbia River Basin available for 2011-2017 in an effort to describe target conditions for Chinook salmon and steelhead. This is a dataset that is similarly used in Quantile Random Forest (QRF) models to estimate available habitat capacity. We want to explore sites within the dataset that have particularly high juvenile or redd densities and examine distributions of habitat covariates for those sites to see if particular habitat characteristics are related to high densities i.e., do distributions of particular habitat characteristics in high density sites differ from all other sites?
 
 ## Objectives
 
-Objective text...
+Explore sites within the 2011-2017 paired fish-habitat dataset from ISEMP/CHaMP and determine whether the mean or median values for habitat characteristics in sites with high juvenile fish or redd densities are different than values from all other sites with lower densities. We define high density sites as those in the highest quartile of densities for a given species by life stage scenario. Species and life stage combinations include:
+
+* Species: Chinook salmon, steelhead
+* Life Stages: Summer parr, Winter presmolts, Redds
+
+For each scenario, we attempt to identify habitat covariates that are unique to those high density sites i.e., their distribution in the highest quartile sites is different than all sites with lower juvenile fish/redd densities.
+
 
 # Methods
+
+## Data Sources
 
 Methods text...
 
