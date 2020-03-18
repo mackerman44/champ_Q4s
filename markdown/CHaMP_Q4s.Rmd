@@ -48,10 +48,10 @@ institute:
 csl: "../templates/american-fisheries-society.csl"
 ---
 
-```{r setup, echo = F, message = F, warning = F, results = 'hide'}
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 # load knitr for markdown
 library(knitr)
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = F)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 
 # load necessary libraries
 library(tidyverse)
@@ -113,6 +113,7 @@ source("../R/2_clean_data.R")
 source("../R/3_parse_data.R")
 source("../R/4_metric_list.R")
 source("../R/5_wlcx_rs.R")
+source("../R/fh_plot.R")
 ```
 
 ## Chinook salmon
@@ -139,6 +140,9 @@ metrics = metric_list(ls = ls)
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics)
 
+```
+
+```{r chnk-sum-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile Chinook salmon estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
 alpha = 0.1
 tst_results %>%
@@ -157,6 +161,9 @@ tst_results %>%
        y = "# of Significant Comparisons",
        title = paste(spc, ls))
 
+```
+
+```{r chnk-sum-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile Chinook salmon densities in the upper quartile versus all other sites with fish oservations."}
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
@@ -199,6 +206,9 @@ metrics = metric_list(ls = ls)
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics)
 
+```
+
+```{r chnk-win-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile Chinook salmon estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
 alpha = 0.1
 tst_results %>%
@@ -217,6 +227,9 @@ tst_results %>%
        y = "# of Significant Comparisons",
        title = paste(spc, ls))
 
+```
+
+```{r chnk-win-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile Chinook salmon densities in the upper quartile versus all other sites with fish oservations."}
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
@@ -259,6 +272,9 @@ metrics = metric_list(ls = ls)
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics)
 
+```
+
+```{r chnk-spw-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with Chinook salmon estimated redd densities in the upper quartile versus all other sites where redds were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
 alpha = 0.1
 tst_results %>%
@@ -277,6 +293,9 @@ tst_results %>%
        y = "# of Significant Comparisons",
        title = paste(spc, ls))
 
+```
+
+```{r chnk-spw-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with Chinook salmon redd densities in the upper quartile versus all other sites with redd observations."}
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
@@ -296,6 +315,7 @@ tst_results %>%
   facet_wrap(~ key)
 
 ```
+
 
 ## Steelhead
 
@@ -321,6 +341,9 @@ metrics = metric_list(ls = ls)
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics)
 
+```
+
+```{r sthd-sum-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile steelhead estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
 alpha = 0.1
 tst_results %>%
@@ -339,6 +362,9 @@ tst_results %>%
        y = "# of Significant Comparisons",
        title = paste(spc, ls))
 
+```
+
+```{r sthd-sum-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile steelhead densities in the upper quartile versus all other sites with fish observations."}
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
@@ -381,6 +407,9 @@ metrics = metric_list(ls = ls)
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics)
 
+```
+
+```{r sthd-win-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile steelhead estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
 alpha = 0.1
 tst_results %>%
@@ -399,6 +428,9 @@ tst_results %>%
        y = "# of Significant Comparisons",
        title = paste(spc, ls))
 
+```
+
+```{r sthd-win-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile steelhead densities in the upper quartile versus all other sites with fish observations."}
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
@@ -441,6 +473,9 @@ metrics = metric_list(ls = ls)
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics)
 
+```
+
+```{r sthd-spw-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with steelhead estimated redd densities in the upper quartile versus all other sites where redds were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
 alpha = 0.1
 tst_results %>%
@@ -459,6 +494,9 @@ tst_results %>%
        y = "# of Significant Comparisons",
        title = paste(spc, ls))
 
+```
+
+```{r sthd-spw-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with steelhead redd densities in the upper quartile versus all other sites with redd observations."}
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
@@ -479,9 +517,11 @@ tst_results %>%
 
 ```
 
+
 # Discussion
 
 Discussion text...
+
 
 # Literature Cited
 

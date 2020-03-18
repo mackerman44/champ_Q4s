@@ -1,7 +1,7 @@
 # generic function for plotting
-fh_plot = function(data, metrics_list) {
+fh_plot = function(data, covs_list) {
   data %>%
-    select(qrtl, one_of(metrics_list)) %>%
+    select(qrtl, one_of(covs_list)) %>%
     gather(variable, value, -qrtl) %>%
     ggplot(aes(x = value,
                color = qrtl,
