@@ -32,7 +32,7 @@ ls  = "spw"          # life_stage: "sum" summer parr; "win" winter presmolt; "sp
 #------------------------------
 # load data
 loadRData = function(fileName) {
-  # loads and RData file, and returns it
+  # loads an RData file, and returns it
   load(fileName)
   get(ls()[ls() != "fileName"])
 }

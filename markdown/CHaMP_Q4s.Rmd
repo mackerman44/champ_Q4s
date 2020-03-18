@@ -81,11 +81,29 @@ For each scenario, we attempt to identify habitat covariates that are unique to 
 
 # Methods
 
-## Data Sources
+## Data
 
-Methods text...
+The data sources used and described here are described in further detail in Appendix B of the IRA (Idaho OSC Team 2019).
 
+### Study Site
 
+The fish and habitat data span the years 2011-2017 and are from a total of 11 watersheds within the interior Columbia River Basin: Asotin, Entiat, Grande Ronde (upper), John Day, Lemhi, Methow, Minam (tributary of Grande Ronde), Secesh, Tucannon, Wenatchee, and Yankee Fork. Habitat data were collected by the Columbia Habitat Monitoring Program (CHaMP) and juvenile fish and redd data collected at CHaMP surveys sites were provided by several collaborators and projects and included the Integrated Status and Effectiveness Monitoring Program (ISEMP; ISEMP/CHaMP 2017).
+
+### Habitat Data
+
+The habitat data were collected by CHaMP and downloaded from the [CHaMP website](https://www.champmonitoring.org/). CHaMP sites are 200- to 500-meter reaches within wadeable streams across select watersheds within the interior Columbia River Basin and were selected based on a spatially balanced Generalized Tesselation (GRTS) sample selection algorithm (Stevens and Olsen 1999, 2004). Habitat data within CHaMP sites are collected using the CHaMP protocol (CHaMP 2016), which calls for field data collection during the low-flow periods, typically from June through October. CHaMP habitat data include, but are not limited to, measurements describing channel complexity, channel units, disturbance, fish cover, large woody debris, riparian cover, size (depth, width, discharge), substrate, temperature, and water quality.
+
+### Juvenile Fish Data
+
+Juvenile fish surveys were conducted for Chinook salmon and steelhead during the summer and winter low-flow seasons at many of the same sites that were surveyed for habitat using the CHaMP protocol. Fish survey methods to estimate juvenle abundance included mark-recapture, three-pass removal, two-pass removal, and single-pass electrofishing, as well as snorkeling. See et al. (2018) provide further detail on methods used to generate juvenile abundance estimates. Summer sampling and data collection were conducted at the site-scale, whereas winter sampling was conducted at the channel unit scale, and primarily using snorkel surveys.
+
+Juvenile abundance estimates were translated into linear (parr/m) and areal (parr/m^2) densities; although here we only use the linear densities for juvenile fish.
+
+### Redd Data
+
+Chinook salmon and steelhead redd data were graciously provided by the Idaho Department of Fish and Game, Nez Perce Tribe Department of Fisheries Resources, Oregon Department of Fish and Wildlife, U.S. Fish and Wildlife Service, and the Washington Department of Fish and Wildlife and span the years 1995 to 2016. Redd data were available for the following CHaMP watersheds: Asotin, Entiat, John Day, Lemhi, Methow, Minam, Secesh, Tucannon, upper Grande Ronde, Wenatchee, and Yankee Fork. The latitude and longitude of each CHaMP site and each redd were snapped to a route in ArcGIS and the number of redds that occurred within 500 meters upstream or downstream of each CHaMP site for each year in which redds were observed were counted and transformed into linear densities (redds/km).
+
+## Analysis
 
 # Results
 
@@ -97,3 +115,6 @@ Discussion text...
 
 # Literature Cited
 
+Idaho OSC Team (Idaho Governor’s Office of Species Conservation and partners). 2019. Upper Salmon Subbasin Habitat Integrated Rehabilitation Assessment. Assessment prepared for and with the U.S. Department of the Interior, Bureau of Reclamation. June 2019. 625 pp.
+
+ISEMP/CHaMP. 2017. Integrated Status and Effectiveness Monitoring Program (ISEMP) and Columbia Habitat Monitoring Program (CHaMP) Annual Combined Technical Report, January - December 2016. BPA Projects 2003-017-00 and 2011-006-00, 93 Electronic Pages.
