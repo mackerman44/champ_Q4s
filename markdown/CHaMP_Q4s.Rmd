@@ -85,6 +85,20 @@ For each scenario, we attempt to identify habitat covariates that are unique to 
 
 The data sources used and described here are described in further detail in Appendix B of the IRA (Idaho OSC Team 2019).
 
+```{r load-data}
+source("../R/1_load_data.R")
+ls_df = load_data(ls = "sum")
+
+source("../R/2_clean_data.R")
+spc_ls_hab_df = clean_data(data = ls_df, spc = "chnk", ls = "sum")
+
+source("../R/3_parse_data.R")
+df_list = parse_data(data = spc_ls_hab_df, spc = "chnk", ls = "sum")
+
+source("../R/4_metric_list.R")
+metric_list = metric_list(ls = "sum")
+```
+
 ### Study Site
 
 The fish and habitat data span the years 2011-2017 and are from a total of 11 watersheds within the interior Columbia River Basin: Asotin, Entiat, Grande Ronde (upper), John Day, Lemhi, Methow, Minam (tributary of Grande Ronde), Secesh, Tucannon, Wenatchee, and Yankee Fork. Habitat data were collected by the Columbia Habitat Monitoring Program (CHaMP) and juvenile fish and redd data collected at CHaMP surveys sites were provided by several collaborators and projects and included the Integrated Status and Effectiveness Monitoring Program (ISEMP; ISEMP/CHaMP 2017).
@@ -97,7 +111,7 @@ The habitat data were collected by CHaMP and downloaded from the [CHaMP website]
 
 Juvenile fish surveys were conducted for Chinook salmon and steelhead during the summer and winter low-flow seasons at many of the same sites that were surveyed for habitat using the CHaMP protocol. Fish survey methods to estimate juvenle abundance included mark-recapture, three-pass removal, two-pass removal, and single-pass electrofishing, as well as snorkeling. See et al. (2018) provide further detail on methods used to generate juvenile abundance estimates. Summer sampling and data collection were conducted at the site-scale, whereas winter sampling was conducted at the channel unit scale, and primarily using snorkel surveys.
 
-Juvenile abundance estimates were translated into linear (parr/m) and areal (parr/m^2) densities; although here we only use the linear densities for juvenile fish.
+Juvenile abundance estimates were translated into linear (parr/m) and areal (parr/m$^2$) densities; although here we only use the linear densities for juvenile fish.
 
 ### Redd Data
 
