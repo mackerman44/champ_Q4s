@@ -174,6 +174,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+names(df_list) = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', names(df_list)), ' ')
 n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
@@ -241,20 +242,19 @@ p_results %>%
 ```{r chnk-sum-targets}
 # list of metrics to plot/summarize for scenario
 hab_list = c("Q", 
-             "Cond",
-             "DpthThlwg_UF_CV")
+             "Cond")
 
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
          sig == 1)
-
+  
 # plot for each significant covariate (in hab_list), faceted by dataset
-plot_list = sig_hab_df %>%
+plot_data = sig_hab_df %>%
   rename(dataset = data) %>%
   as_tibble() %>%
   left_join(tibble(dataset = names(df_list),
-                 data = df_list)) %>%
+                   data = df_list)) %>%
   mutate(plot_df = map2(hab_cov,
                         data,
                        .f = function(x, y) {
@@ -262,8 +262,11 @@ plot_list = sig_hab_df %>%
                         select(hab_met = one_of(x), qrtl)
                        })) %>%
   select(dataset, hab_cov, plot_df) %>%
+  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
   unnest(cols = plot_df) %>%
-  split(list(.$hab_cov)) %>%
+  split(list(.$hab_cov))
+
+plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
@@ -279,7 +282,7 @@ plot_list = sig_hab_df %>%
       facet_wrap(~ dataset,
                  scales = 'free_y')
   })
-
+plot_list
 
 ```
 
@@ -298,6 +301,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+names(df_list) = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', names(df_list)), ' ')
 n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
@@ -359,6 +363,58 @@ p_results %>%
 
 ```
 
+```{r chnk-win-targets}
+# list of metrics to plot/summarize for scenario
+hab_list = c("CU_Freq",
+             "FishCovLW",
+             "Discharge",
+             "FishCovAll",
+             "FishCovNone",
+             "Dpth_Max",
+             "Temp")
+
+# find datasets where hab_list were significant
+sig_hab_df = tst_results %>%
+  filter(hab_cov %in% hab_list,
+         sig == 1)
+  
+# plot for each significant covariate (in hab_list), faceted by dataset
+plot_data = sig_hab_df %>%
+  rename(dataset = data) %>%
+  as_tibble() %>%
+  left_join(tibble(dataset = names(df_list),
+                   data = df_list)) %>%
+  mutate(plot_df = map2(hab_cov,
+                        data,
+                       .f = function(x, y) {
+                         y %>%
+                        select(hab_met = one_of(x), qrtl)
+                       })) %>%
+  select(dataset, hab_cov, plot_df) %>%
+  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
+  unnest(cols = plot_df) %>%
+  split(list(.$hab_cov))
+
+plot_list = plot_data %>%
+  map(.f = function(x) {
+    x %>%
+      ggplot() +
+      geom_density(aes(x = hab_met,
+                       fill = qrtl,
+                       color = qrtl),
+                   alpha = 0.3) +
+      scale_color_brewer(palette = "Set1",
+                         name = 'Group') +
+      scale_fill_brewer(palette = "Set1",
+                        name = 'Group') +
+      labs(x = unique(x$hab_cov)) +
+      facet_wrap(~ dataset,
+                 scales = 'free_y')
+  })
+plot_list
+
+```
+
 ### Redds
 
 ```{r chnk-spw}
@@ -374,6 +430,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+names(df_list) = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', names(df_list)), ' ')
 n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
@@ -435,6 +492,52 @@ p_results %>%
 
 ```
 
+```{r chnk-spw-targets}
+# list of metrics to plot/summarize for scenario
+hab_list = c("SubD84")
+
+# find datasets where hab_list were significant
+sig_hab_df = tst_results %>%
+  filter(hab_cov %in% hab_list,
+         sig == 1)
+  
+# plot for each significant covariate (in hab_list), faceted by dataset
+plot_data = sig_hab_df %>%
+  rename(dataset = data) %>%
+  as_tibble() %>%
+  left_join(tibble(dataset = names(df_list),
+                   data = df_list)) %>%
+  mutate(plot_df = map2(hab_cov,
+                        data,
+                       .f = function(x, y) {
+                         y %>%
+                        select(hab_met = one_of(x), qrtl)
+                       })) %>%
+  select(dataset, hab_cov, plot_df) %>%
+  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
+  unnest(cols = plot_df) %>%
+  split(list(.$hab_cov))
+
+plot_list = plot_data %>%
+  map(.f = function(x) {
+    x %>%
+      ggplot() +
+      geom_density(aes(x = hab_met,
+                       fill = qrtl,
+                       color = qrtl),
+                   alpha = 0.3) +
+      scale_color_brewer(palette = "Set1",
+                         name = 'Group') +
+      scale_fill_brewer(palette = "Set1",
+                        name = 'Group') +
+      labs(x = unique(x$hab_cov)) +
+      facet_wrap(~ dataset,
+                 scales = 'free_y')
+  })
+plot_list
+
+```
+
 
 ## Steelhead
 
@@ -453,6 +556,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+names(df_list) = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', names(df_list)), ' ')
 n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
@@ -514,6 +618,52 @@ p_results %>%
 
 ```
 
+```{r sthd-sum-targets}
+# list of metrics to plot/summarize for scenario
+hab_list = c("RipCovGrndNone")
+
+# find datasets where hab_list were significant
+sig_hab_df = tst_results %>%
+  filter(hab_cov %in% hab_list,
+         sig == 1)
+  
+# plot for each significant covariate (in hab_list), faceted by dataset
+plot_data = sig_hab_df %>%
+  rename(dataset = data) %>%
+  as_tibble() %>%
+  left_join(tibble(dataset = names(df_list),
+                   data = df_list)) %>%
+  mutate(plot_df = map2(hab_cov,
+                        data,
+                       .f = function(x, y) {
+                         y %>%
+                        select(hab_met = one_of(x), qrtl)
+                       })) %>%
+  select(dataset, hab_cov, plot_df) %>%
+  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
+  unnest(cols = plot_df) %>%
+  split(list(.$hab_cov))
+
+plot_list = plot_data %>%
+  map(.f = function(x) {
+    x %>%
+      ggplot() +
+      geom_density(aes(x = hab_met,
+                       fill = qrtl,
+                       color = qrtl),
+                   alpha = 0.3) +
+      scale_color_brewer(palette = "Set1",
+                         name = 'Group') +
+      scale_fill_brewer(palette = "Set1",
+                        name = 'Group') +
+      labs(x = unique(x$hab_cov)) +
+      facet_wrap(~ dataset,
+                 scales = 'free_y')
+  })
+plot_list
+
+```
+
 ### Winter presmolt
 
 ```{r sthd-win}
@@ -529,6 +679,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+names(df_list) = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', names(df_list)), ' ')
 n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
@@ -590,6 +741,57 @@ p_results %>%
 
 ```
 
+```{r sthd-win-targets}
+# list of metrics to plot/summarize for scenario
+hab_list = c("FishCovLW",
+             "CU_Freq",
+             "FishCovAll",
+             "FishCovNone",
+             "Discharge",
+             "Dpth_Max")
+
+# find datasets where hab_list were significant
+sig_hab_df = tst_results %>%
+  filter(hab_cov %in% hab_list,
+         sig == 1)
+  
+# plot for each significant covariate (in hab_list), faceted by dataset
+plot_data = sig_hab_df %>%
+  rename(dataset = data) %>%
+  as_tibble() %>%
+  left_join(tibble(dataset = names(df_list),
+                   data = df_list)) %>%
+  mutate(plot_df = map2(hab_cov,
+                        data,
+                       .f = function(x, y) {
+                         y %>%
+                        select(hab_met = one_of(x), qrtl)
+                       })) %>%
+  select(dataset, hab_cov, plot_df) %>%
+  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
+  unnest(cols = plot_df) %>%
+  split(list(.$hab_cov))
+
+plot_list = plot_data %>%
+  map(.f = function(x) {
+    x %>%
+      ggplot() +
+      geom_density(aes(x = hab_met,
+                       fill = qrtl,
+                       color = qrtl),
+                   alpha = 0.3) +
+      scale_color_brewer(palette = "Set1",
+                         name = 'Group') +
+      scale_fill_brewer(palette = "Set1",
+                        name = 'Group') +
+      labs(x = unique(x$hab_cov)) +
+      facet_wrap(~ dataset,
+                 scales = 'free_y')
+  })
+plot_list
+
+```
+
 ### Redds
 
 ```{r sthd-spw}
@@ -605,6 +807,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+names(df_list) = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', names(df_list)), ' ')
 n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
@@ -666,6 +869,51 @@ p_results %>%
 
 ```
 
+```{r sthd-spw-targets}
+# list of metrics to plot/summarize for scenario
+hab_list = c("Elev")
+
+# find datasets where hab_list were significant
+sig_hab_df = tst_results %>%
+  filter(hab_cov %in% hab_list,
+         sig == 1)
+  
+# plot for each significant covariate (in hab_list), faceted by dataset
+plot_data = sig_hab_df %>%
+  rename(dataset = data) %>%
+  as_tibble() %>%
+  left_join(tibble(dataset = names(df_list),
+                   data = df_list)) %>%
+  mutate(plot_df = map2(hab_cov,
+                        data,
+                       .f = function(x, y) {
+                         y %>%
+                        select(hab_met = one_of(x), qrtl)
+                       })) %>%
+  select(dataset, hab_cov, plot_df) %>%
+  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
+  unnest(cols = plot_df) %>%
+  split(list(.$hab_cov))
+
+plot_list = plot_data %>%
+  map(.f = function(x) {
+    x %>%
+      ggplot() +
+      geom_density(aes(x = hab_met,
+                       fill = qrtl,
+                       color = qrtl),
+                   alpha = 0.3) +
+      scale_color_brewer(palette = "Set1",
+                         name = 'Group') +
+      scale_fill_brewer(palette = "Set1",
+                        name = 'Group') +
+      labs(x = unique(x$hab_cov)) +
+      facet_wrap(~ dataset,
+                 scales = 'free_y')
+  })
+plot_list
+
+```
 
 # Discussion
 
