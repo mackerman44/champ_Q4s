@@ -63,11 +63,14 @@ theme_set(theme_bw())
 
 ```
 
+
 # Introduction
 
 The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analysis in support of future project identification, prioritization and design in the Upper Salmon Subbasin, Idaho. The goal is stream and riparian habitat rehabilitation to support recovery of imperiled Chinook salmon and steelhead populations. The biologic and geomorphic analyses are being lead by Biomark, Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Previous efforts from the team identified the "problem" within the target watersheds (IRA; Idaho OSC Team 2019). The second phase, termed the Multiple REach Assessments (MRA), includes identifying appropriate and focused "solutions" to the identified capacity problems. To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat, its creation, and its maintenance to inform future rehabilitation actions.
 
 One of the primary goals of the MRA is to identify target or preferred conditions from a fish's perspective to later translate those into appropriate, target geomorphic conditions. Here, we mine an existing paired fish-habitat dataset from the Columbia River Basin available for 2011-2017 in an effort to describe target conditions for Chinook salmon and steelhead. This is a dataset that is similarly used in Quantile Random Forest (QRF) models to estimate available habitat capacity. We want to explore sites within the dataset that have particularly high juvenile or redd densities and examine distributions of habitat covariates for those sites to see if particular habitat characteristics are related to high densities i.e., do distributions of particular habitat characteristics in high density sites differ from all other sites?
+
+All of the data, scripts, etc. described in the document are available in the [champ_Q4s](https://github.com/mackerman44/champ_Q4s) repo available on www.github.com.
 
 ## Objectives
 
@@ -105,9 +108,8 @@ Chinook salmon and steelhead redd data were graciously provided by the Idaho Dep
 
 ## Analysis
 
-# Results
-
 ```{r source-scripts}
+# source all scripts used in analysis
 source("../R/1_load_data.R")
 source("../R/2_clean_data.R")
 source("../R/3_parse_data.R")
@@ -115,6 +117,45 @@ source("../R/4_metric_list.R")
 source("../R/5_wlcx_rs.R")
 source("../R/fh_plot.R")
 ```
+
+All of the scripts and data used are available in the [champ_Q4s](https://github.com/mackerman44/champ_Q4s) Git repo. We provide detailed methods for a single species x life stage combination, and in this case, focus on Chinook salmon and summer parr rearing. Similar methods are then applied to both species and all three life stages and we attempt to note differences in methods where appropriate: 
+
+```{r load-data}
+# load datasets for methods
+sum_df = load_data(ls = "sum")
+win_df = load_data(ls = "win")
+spw_df = load_data(ls = "spw")
+
+# lists of data parsers for methods
+watersheds = unique(c(unique(sum_df$Watershed), as.character(unique(win_df$Watershed)), unique(spw_df$Watershed)))
+channel_types = unique(c(unique(sum_df$Channel_Type), unique(spw_df$Channel_Type)))
+channel_types = channel_types[!is.na(channel_types)]
+tier_1s = as.character(unique(win_df$Tier1))
+
+# set alpha for wilcoxon rank sum tests
+alpha = 0.10
+
+```
+
+* Read in the appropriate dataset, according to life stage, using the `load_data()` function in *R/1_load_data.R*. Each dataset contains the following number of records: Summer parr (`r nrow(sum_df)`), winter presmolt (`r nrow(win_df)`), and adult spawning (`r nrow(spw_df)`). Each observation/record includes estimates of juvenile fish/redd abundance and density for a site paired with all of the habitat measurements collected for that site at the same spatial scale. For the summer parr and adult spawning life stages, the data are at the CHaMP site scale. For the winter presmolt life stage, data are at the channel unit scale.
+*  Use the `clean_data()` function in *R/2_clean_data.R* to filter, reduce, and prepare the above dataset according to species and life-stage. The `clean_data()` function performs the following steps: 
+    + Filter the dataset to only include records for the given species, Chinook salmon or steelhead.
+    + Reduce columns in the dataset to include:
+        - Fish abundance and linear density estimates; either fish/m for the juvenile rearing life stages or redds/km for the adult spawning life stage.
+        - Information that can be used to parse the dataset either by watershed or channel classification (channel type or Tier 1 classification).
+        - Relevant habitat measurements/covariates that we are interested in that may be correlated with observed fish/redd densities or useful for habitat rehabilitation.
+    + Reduce the dataset to only include records where fish or redds were observed. For records where abundance or density equals 0, sometimes it is unclear whether that was due to the site not being sampled or the site being sampled, but no fish or redds observed.
+* Parse the data using the `parse_data()` function in *R/parse_data.R*. The function splits the above dataset by watershed and channel classification. For the summer parr and adult spawning datasets, that channel classification is done according to the **Channel_Type** column and for the winter presmolts dataset using the **Tier1** column. Those columns contain the following unique values:
+    + **Watershed:** `r watersheds`
+    + **Channel_Type:** `r channel_types`
+    + **Tier1:** `r tier_1s`
+* We eliminate any parsed data set with too few observations. In our case, we used a minimum sample size of 20.
+* After parsing the data by watershed or channel classification, calculate the quartiles of the observed aerial juvenile fish or redd densities. All surveys/sites in the uppermost quartile are assigned to a **Q4** category containing highest densities; all other surveys/sites are assigned to a **Rest** category containing lower densities.
+* Finally, after filter/reducing the dataset by species and life stage and then parsing by watershed and channel classification, we compare the means of the habitat measurements between the **Q4** sites and the **Rest** sites using a Wilcoxon rank sum test. This is then repeated across all habitat covariates for each parsed dataset. As an example, for Chinook salmon summer parr, we have datasets for `r sum_df %>% filter(Species == "Chinook") %>% pull(Watershed) %>% unique() %>% length()` watersheds and `r sum_df %>% filter(Species == "Chinook") %>% pull(Channel_Type) %>% unique() %>% length()` channel types and after removing those datasets that are too small we calculate the mean for each covariate for the **Q4** and **Rest** sites and then compare the means and grab the p-value from the Wilcoxon rank sum test performed within each dataset.
+* The results then allow us to examine the number of datasets (and which datasets) there was a difference in means for a habitat covariate between high and low density sites. We can also, for example, calculate the mean or median p-value for each habitat covariate.
+
+
+# Results
 
 ## Chinook salmon
 
@@ -133,6 +174,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
@@ -142,24 +184,26 @@ tst_results = wlcx_rs_test(df_list, metrics)
 
 ```
 
+For Chinook, summer parr
+
 ```{r chnk-sum-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile Chinook salmon estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-alpha = 0.1
 tst_results %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
   group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_dfs = sig_dfs / n_dfs) %>%
   ungroup() %>%
   filter(sig_dfs > 0) %>%
   #arrange(desc(sig_dfs)) %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = sig_dfs)) +
+             y = p_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "# of Significant Comparisons",
-       title = paste(spc, ls))
+       y = "p(Significant Comparisons)",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets"))
 
 ```
 
@@ -167,19 +211,19 @@ tst_results %>%
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
-  summarise(mn_p = mean(p_value, na.rm = T),
-            md_p = median(p_value, na.rm = T)) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
   ungroup() %>%
-  gather(key, value, mn_p:md_p) %>%
+  gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
-  geom_col(fill = "steelblue4") +
+  geom_col(fill = "orangered3") +
   geom_hline(yintercept = alpha, color = "red") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "p",
-       title = paste(spc, ls)) +
+       y = "p-value",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
 ```
@@ -199,6 +243,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
@@ -210,22 +255,22 @@ tst_results = wlcx_rs_test(df_list, metrics)
 
 ```{r chnk-win-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile Chinook salmon estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-alpha = 0.1
 tst_results %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
   group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_dfs = sig_dfs / n_dfs) %>%
   ungroup() %>%
   filter(sig_dfs > 0) %>%
   #arrange(desc(sig_dfs)) %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = sig_dfs)) +
+             y = p_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "# of Significant Comparisons",
-       title = paste(spc, ls))
+       y = "p(Significant Comparisons)",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets"))
 
 ```
 
@@ -233,19 +278,19 @@ tst_results %>%
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
-  summarise(mn_p = mean(p_value, na.rm = T),
-            md_p = median(p_value, na.rm = T)) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
   ungroup() %>%
-  gather(key, value, mn_p:md_p) %>%
+  gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
-  geom_col(fill = "steelblue4") +
+  geom_col(fill = "orangered3") +
   geom_hline(yintercept = alpha, color = "red") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "p",
-       title = paste(spc, ls)) +
+       y = "p-value",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
 ```
@@ -265,6 +310,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
@@ -276,22 +322,22 @@ tst_results = wlcx_rs_test(df_list, metrics)
 
 ```{r chnk-spw-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with Chinook salmon estimated redd densities in the upper quartile versus all other sites where redds were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-alpha = 0.1
 tst_results %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
   group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_dfs = sig_dfs / n_dfs) %>%
   ungroup() %>%
   filter(sig_dfs > 0) %>%
   #arrange(desc(sig_dfs)) %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = sig_dfs)) +
+             y = p_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "# of Significant Comparisons",
-       title = paste(spc, ls))
+       y = "p(Significant Comparisons)",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets"))
 
 ```
 
@@ -299,19 +345,19 @@ tst_results %>%
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
-  summarise(mn_p = mean(p_value, na.rm = T),
-            md_p = median(p_value, na.rm = T)) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
   ungroup() %>%
-  gather(key, value, mn_p:md_p) %>%
+  gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
-  geom_col(fill = "steelblue4") +
+  geom_col(fill = "orangered3") +
   geom_hline(yintercept = alpha, color = "red") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "p",
-       title = paste(spc, ls)) +
+       y = "p-value",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
 ```
@@ -334,6 +380,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
@@ -345,22 +392,22 @@ tst_results = wlcx_rs_test(df_list, metrics)
 
 ```{r sthd-sum-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile steelhead estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-alpha = 0.1
 tst_results %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
   group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_dfs = sig_dfs / n_dfs) %>%
   ungroup() %>%
   filter(sig_dfs > 0) %>%
   #arrange(desc(sig_dfs)) %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = sig_dfs)) +
+             y = p_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "# of Significant Comparisons",
-       title = paste(spc, ls))
+       y = "p(Significant Comparisons)",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets"))
 
 ```
 
@@ -368,19 +415,19 @@ tst_results %>%
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
-  summarise(mn_p = mean(p_value, na.rm = T),
-            md_p = median(p_value, na.rm = T)) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
   ungroup() %>%
-  gather(key, value, mn_p:md_p) %>%
+  gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
-  geom_col(fill = "steelblue4") +
+  geom_col(fill = "orangered3") +
   geom_hline(yintercept = alpha, color = "red") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "p",
-       title = paste(spc, ls)) +
+       y = "p-value",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
 ```
@@ -400,6 +447,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
@@ -411,22 +459,22 @@ tst_results = wlcx_rs_test(df_list, metrics)
 
 ```{r sthd-win-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile steelhead estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-alpha = 0.1
 tst_results %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
   group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_dfs = sig_dfs / n_dfs) %>%
   ungroup() %>%
   filter(sig_dfs > 0) %>%
   #arrange(desc(sig_dfs)) %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = sig_dfs)) +
+             y = p_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "# of Significant Comparisons",
-       title = paste(spc, ls))
+       y = "p(Significant Comparisons)",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets"))
 
 ```
 
@@ -434,19 +482,19 @@ tst_results %>%
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
-  summarise(mn_p = mean(p_value, na.rm = T),
-            md_p = median(p_value, na.rm = T)) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
   ungroup() %>%
-  gather(key, value, mn_p:md_p) %>%
+  gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
-  geom_col(fill = "steelblue4") +
+  geom_col(fill = "orangered3") +
   geom_hline(yintercept = alpha, color = "red") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "p",
-       title = paste(spc, ls)) +
+       y = "p-value",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
 ```
@@ -466,6 +514,7 @@ spc_ls_hab_df = clean_data(data = ls_df, spc = spc, ls = ls)
 
 # parse data by watershed, channel unit type, and/or tier 1
 df_list = parse_data(data = spc_ls_hab_df, spc = spc, ls = ls)
+n_dfs = length(df_list)
 
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
@@ -477,22 +526,22 @@ tst_results = wlcx_rs_test(df_list, metrics)
 
 ```{r sthd-spw-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with steelhead estimated redd densities in the upper quartile versus all other sites where redds were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-alpha = 0.1
 tst_results %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
   group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T)) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_dfs = sig_dfs / n_dfs) %>%
   ungroup() %>%
   filter(sig_dfs > 0) %>%
   #arrange(desc(sig_dfs)) %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = sig_dfs)) +
+             y = p_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "# of Significant Comparisons",
-       title = paste(spc, ls))
+       y = "p(Significant Comparisons)",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets"))
 
 ```
 
@@ -500,19 +549,19 @@ tst_results %>%
 # plot meadian and mean p-values
 tst_results %>%
   group_by(hab_cov) %>%
-  summarise(mn_p = mean(p_value, na.rm = T),
-            md_p = median(p_value, na.rm = T)) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
   ungroup() %>%
-  gather(key, value, mn_p:md_p) %>%
+  gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
-  geom_col(fill = "steelblue4") +
+  geom_col(fill = "orangered3") +
   geom_hline(yintercept = alpha, color = "red") +
   theme_bw() +
   coord_flip() +
   labs(x = "Habitat Covariate",
-       y = "p",
-       title = paste(spc, ls)) +
+       y = "p-value",
+       title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
 ```
