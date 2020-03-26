@@ -240,12 +240,46 @@ p_results %>%
 
 ```{r chnk-sum-targets}
 # list of metrics to plot/summarize for scenario
-hab_list = c("Q", "Cond")
+hab_list = c("Q", 
+             "Cond",
+             "DpthThlwg_UF_CV")
 
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
          sig == 1)
+
+# plot for each significant covariate (in hab_list), faceted by dataset
+plot_list = sig_hab_df %>%
+  rename(dataset = data) %>%
+  as_tibble() %>%
+  left_join(tibble(dataset = names(df_list),
+                 data = df_list)) %>%
+  mutate(plot_df = map2(hab_cov,
+                        data,
+                       .f = function(x, y) {
+                         y %>%
+                        select(hab_met = one_of(x), qrtl)
+                       })) %>%
+  select(dataset, hab_cov, plot_df) %>%
+  unnest(cols = plot_df) %>%
+  split(list(.$hab_cov)) %>%
+  map(.f = function(x) {
+    x %>%
+      ggplot() +
+      geom_density(aes(x = hab_met,
+                       fill = qrtl,
+                       color = qrtl),
+                   alpha = 0.3) +
+      scale_color_brewer(palette = "Set1",
+                         name = 'Group') +
+      scale_fill_brewer(palette = "Set1",
+                        name = 'Group') +
+      labs(x = unique(x$hab_cov)) +
+      facet_wrap(~ dataset,
+                 scales = 'free_y')
+  })
+
 
 ```
 
