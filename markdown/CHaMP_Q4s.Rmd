@@ -179,25 +179,37 @@ n_dfs = length(df_list)
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
 
+# generate lists for evaluation & plotting
+metrics = metric_list(ls = ls)
+
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metrics)
+tst_results = wlcx_rs_test(df_list, metrics) %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0))
+
+sig_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_sig_dfs = sig_dfs / n_dfs) %>%
+  ungroup() %>%
+  arrange(-sig_dfs) %>%
+  filter(sig_dfs > 0)
+
+p_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(Median)
 
 ```
 
-For Chinook, summer parr
+For Chinook, summer parr, there were `r nrow(sig_results)` habitat covariates that had a significant p-value of less than `r alpha` in at least 1 of the `r length(df_list)` datasets evaluated including `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% nrow()` covariates that were significant in $\geq\frac{1}{2}$ of the datasets (Figure \@ref(fig:chnk-sum-sig-tests)). Those covariates include: `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% pull(hab_cov)`.
 
 ```{r chnk-sum-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile Chinook salmon estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-tst_results %>%
-  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
-  group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T),
-            p_dfs = sig_dfs / n_dfs) %>%
-  ungroup() %>%
-  filter(sig_dfs > 0) %>%
-  #arrange(desc(sig_dfs)) %>%
+sig_results %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = p_dfs)) +
+             y = p_sig_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
@@ -207,13 +219,11 @@ tst_results %>%
 
 ```
 
+We further summarized the mean and median p-value among the Wilcoxon rank sum tests performed in each `r length(df_list)` datasets and for each habitat covariate (Figure \@ref(fig:chnk-sum-p-val)). There were `r p_results %>% filter(Median <= alpha) %>% nrow()` habitat covariate(s) that had a median p-value $\leq$ our $\alpha =$ `r alpha` which include: `r p_results %>% filter(Median <= alpha) %>% pull(hab_cov)`.
+
 ```{r chnk-sum-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile Chinook salmon densities in the upper quartile versus all other sites with fish oservations."}
-# plot meadian and mean p-values
-tst_results %>%
-  group_by(hab_cov) %>%
-  summarise(Mean = mean(p_value, na.rm = T),
-            Median = median(p_value, na.rm = T)) %>%
-  ungroup() %>%
+# plot median and mean p-values
+p_results %>%
   gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
@@ -249,22 +259,33 @@ n_dfs = length(df_list)
 metrics = metric_list(ls = ls)
 
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metrics)
+tst_results = wlcx_rs_test(df_list, metrics) %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0))
+
+sig_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_sig_dfs = sig_dfs / n_dfs) %>%
+  ungroup() %>%
+  arrange(-sig_dfs) %>%
+  filter(sig_dfs > 0)
+
+p_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(Median)
 
 ```
 
+For Chinook, winter presmolts, there were `r nrow(sig_results)` habitat covariates that had a significant p-value of less than `r alpha` in at least 1 of the `r length(df_list)` datasets evaluated including `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% nrow()` covariates that were significant in $\geq\frac{1}{2}$ of the datasets (Figure \@ref(fig:chnk-win-sig-tests)). Those covariates include: `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% pull(hab_cov)`.
+
 ```{r chnk-win-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile Chinook salmon estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-tst_results %>%
-  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
-  group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T),
-            p_dfs = sig_dfs / n_dfs) %>%
-  ungroup() %>%
-  filter(sig_dfs > 0) %>%
-  #arrange(desc(sig_dfs)) %>%
+sig_results %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = p_dfs)) +
+             y = p_sig_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
@@ -274,13 +295,11 @@ tst_results %>%
 
 ```
 
+We further summarized the mean and median p-value among the Wilcoxon rank sum tests performed in each `r length(df_list)` datasets and for each habitat covariate (Figure \@ref(fig:chnk-win-p-val)). There were `r p_results %>% filter(Median <= alpha) %>% nrow()` habitat covariate(s) that had a median p-value $\leq$ our $\alpha =$ `r alpha` which include: `r p_results %>% filter(Median <= alpha) %>% pull(hab_cov)`.
+
 ```{r chnk-win-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile Chinook salmon densities in the upper quartile versus all other sites with fish oservations."}
-# plot meadian and mean p-values
-tst_results %>%
-  group_by(hab_cov) %>%
-  summarise(Mean = mean(p_value, na.rm = T),
-            Median = median(p_value, na.rm = T)) %>%
-  ungroup() %>%
+# plot median and mean p-values
+p_results %>%
   gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
@@ -316,22 +335,33 @@ n_dfs = length(df_list)
 metrics = metric_list(ls = ls)
 
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metrics)
+tst_results = wlcx_rs_test(df_list, metrics) %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0))
+
+sig_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_sig_dfs = sig_dfs / n_dfs) %>%
+  ungroup() %>%
+  arrange(-sig_dfs) %>%
+  filter(sig_dfs > 0)
+
+p_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(Median)
 
 ```
 
+For Chinook, adult spawning, there were `r nrow(sig_results)` habitat covariates that had a significant p-value of less than `r alpha` in at least 1 of the `r length(df_list)` datasets evaluated including `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% nrow()` covariates that were significant in $\geq\frac{1}{2}$ of the datasets (Figure \@ref(fig:chnk-spw-sig-tests)). Those covariates include: `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% pull(hab_cov)`.
+
 ```{r chnk-spw-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with Chinook salmon estimated redd densities in the upper quartile versus all other sites where redds were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-tst_results %>%
-  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
-  group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T),
-            p_dfs = sig_dfs / n_dfs) %>%
-  ungroup() %>%
-  filter(sig_dfs > 0) %>%
-  #arrange(desc(sig_dfs)) %>%
+sig_results %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = p_dfs)) +
+             y = p_sig_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
@@ -341,13 +371,11 @@ tst_results %>%
 
 ```
 
+We further summarized the mean and median p-value among the Wilcoxon rank sum tests performed in each `r length(df_list)` datasets and for each habitat covariate (Figure \@ref(fig:chnk-spw-p-val)). There were `r p_results %>% filter(Median <= alpha) %>% nrow()` habitat covariate(s) that had a median p-value $\leq$ our $\alpha =$ `r alpha` which include: `r p_results %>% filter(Median <= alpha) %>% pull(hab_cov)`.
+
 ```{r chnk-spw-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with Chinook salmon redd densities in the upper quartile versus all other sites with redd observations."}
-# plot meadian and mean p-values
-tst_results %>%
-  group_by(hab_cov) %>%
-  summarise(Mean = mean(p_value, na.rm = T),
-            Median = median(p_value, na.rm = T)) %>%
-  ungroup() %>%
+# plot median and mean p-values
+p_results %>%
   gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
@@ -386,22 +414,33 @@ n_dfs = length(df_list)
 metrics = metric_list(ls = ls)
 
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metrics)
+tst_results = wlcx_rs_test(df_list, metrics) %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0))
+
+sig_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_sig_dfs = sig_dfs / n_dfs) %>%
+  ungroup() %>%
+  arrange(-sig_dfs) %>%
+  filter(sig_dfs > 0)
+
+p_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(Median)
 
 ```
 
+For steelhead, summer parr, there were `r nrow(sig_results)` habitat covariates that had a significant p-value of less than `r alpha` in at least 1 of the `r length(df_list)` datasets evaluated including `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% nrow()` covariates that were significant in $\geq\frac{1}{2}$ of the datasets (Figure \@ref(fig:sthd-sum-sig-tests)). Those covariates include: `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% pull(hab_cov)`.
+
 ```{r sthd-sum-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile steelhead estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-tst_results %>%
-  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
-  group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T),
-            p_dfs = sig_dfs / n_dfs) %>%
-  ungroup() %>%
-  filter(sig_dfs > 0) %>%
-  #arrange(desc(sig_dfs)) %>%
+sig_results %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = p_dfs)) +
+             y = p_sig_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
@@ -411,13 +450,11 @@ tst_results %>%
 
 ```
 
+We further summarized the mean and median p-value among the Wilcoxon rank sum tests performed in each `r length(df_list)` datasets and for each habitat covariate (Figure \@ref(fig:sthd-sum-p-val)). There were `r p_results %>% filter(Median <= alpha) %>% nrow()` habitat covariate(s) that had a median p-value $\leq$ our $\alpha =$ `r alpha` which include: `r p_results %>% filter(Median <= alpha) %>% pull(hab_cov)`.
+
 ```{r sthd-sum-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile steelhead densities in the upper quartile versus all other sites with fish observations."}
-# plot meadian and mean p-values
-tst_results %>%
-  group_by(hab_cov) %>%
-  summarise(Mean = mean(p_value, na.rm = T),
-            Median = median(p_value, na.rm = T)) %>%
-  ungroup() %>%
+# plot median and mean p-values
+p_results %>%
   gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
@@ -453,22 +490,33 @@ n_dfs = length(df_list)
 metrics = metric_list(ls = ls)
 
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metrics)
+tst_results = wlcx_rs_test(df_list, metrics) %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0))
+
+sig_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_sig_dfs = sig_dfs / n_dfs) %>%
+  ungroup() %>%
+  arrange(-sig_dfs) %>%
+  filter(sig_dfs > 0)
+
+p_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(Median)
 
 ```
 
+For steelhead, winter presmolts, there were `r nrow(sig_results)` habitat covariates that had a significant p-value of less than `r alpha` in at least 1 of the `r length(df_list)` datasets evaluated including `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% nrow()` covariates that were significant in $\geq\frac{1}{2}$ of the datasets (Figure \@ref(fig:sthd-win-sig-tests)). Those covariates include: `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% pull(hab_cov)`.
+
 ```{r sthd-win-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with juvenile steelhead estimated densities in the upper quartile versus all other sites where juveniles were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-tst_results %>%
-  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
-  group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T),
-            p_dfs = sig_dfs / n_dfs) %>%
-  ungroup() %>%
-  filter(sig_dfs > 0) %>%
-  #arrange(desc(sig_dfs)) %>%
+sig_results %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = p_dfs)) +
+             y = p_sig_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
@@ -478,13 +526,11 @@ tst_results %>%
 
 ```
 
+We further summarized the mean and median p-value among the Wilcoxon rank sum tests performed in each `r length(df_list)` datasets and for each habitat covariate (Figure \@ref(fig:sthd-win-p-val)). There were `r p_results %>% filter(Median <= alpha) %>% nrow()` habitat covariate(s) that had a median p-value $\leq$ our $\alpha =$ `r alpha` which include: `r p_results %>% filter(Median <= alpha) %>% pull(hab_cov)`.
+
 ```{r sthd-win-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with juvenile steelhead densities in the upper quartile versus all other sites with fish observations."}
-# plot meadian and mean p-values
-tst_results %>%
-  group_by(hab_cov) %>%
-  summarise(Mean = mean(p_value, na.rm = T),
-            Median = median(p_value, na.rm = T)) %>%
-  ungroup() %>%
+# plot median and mean p-values
+p_results %>%
   gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
@@ -520,22 +566,33 @@ n_dfs = length(df_list)
 metrics = metric_list(ls = ls)
 
 # compare means by dataset and habitat covariate
-tst_results = wlcx_rs_test(df_list, metrics)
+tst_results = wlcx_rs_test(df_list, metrics) %>%
+  mutate(sig = ifelse(p_value <= alpha, 1, 0))
+
+sig_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(sig_dfs = sum(sig, na.rm = T),
+            p_sig_dfs = sig_dfs / n_dfs) %>%
+  ungroup() %>%
+  arrange(-sig_dfs) %>%
+  filter(sig_dfs > 0)
+
+p_results = tst_results %>%
+  group_by(hab_cov) %>%
+  summarise(Mean = mean(p_value, na.rm = T),
+            Median = median(p_value, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(Median)
 
 ```
 
+For steelhead, adult spawning, there were `r nrow(sig_results)` habitat covariates that had a significant p-value of less than `r alpha` in at least 1 of the `r length(df_list)` datasets evaluated including `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% nrow()` covariates that were significant in $\geq\frac{1}{2}$ of the datasets (Figure \@ref(fig:sthd-spw-sig-tests)). Those covariates include: `r sig_results %>% filter(p_sig_dfs >= 0.5) %>% pull(hab_cov)`.
+
 ```{r sthd-spw-sig-tests, fig.cap = "The number of comparisons, among data frames evaluated, where the mean of a habitat covariate was significantly different between those CHaMP sites with steelhead estimated redd densities in the upper quartile versus all other sites where redds were observed. Comparisons were made using a Wilcoxon rank sum test."}
 # let's look at the # of significant comparisons by habitat covariate
-tst_results %>%
-  mutate(sig = ifelse(p_value <= alpha, 1, 0)) %>%
-  group_by(hab_cov) %>%
-  summarise(sig_dfs = sum(sig, na.rm = T),
-            p_dfs = sig_dfs / n_dfs) %>%
-  ungroup() %>%
-  filter(sig_dfs > 0) %>%
-  #arrange(desc(sig_dfs)) %>%
+sig_results %>%
   ggplot(aes(x = reorder(hab_cov, sig_dfs),
-             y = p_dfs)) +
+             y = p_sig_dfs)) +
   geom_col(fill = "steelblue4") +
   theme_bw() +
   coord_flip() +
@@ -545,13 +602,11 @@ tst_results %>%
 
 ```
 
+We further summarized the mean and median p-value among the Wilcoxon rank sum tests performed in each `r length(df_list)` datasets and for each habitat covariate (Figure \@ref(fig:sthd-spw-p-val)). There were `r p_results %>% filter(Median <= alpha) %>% nrow()` habitat covariate(s) that had a median p-value $\leq$ our $\alpha =$ `r alpha` which include: `r p_results %>% filter(Median <= alpha) %>% pull(hab_cov)`.
+
 ```{r sthd-spw-p-val, fig.cap = "The median (md_p) and mean (mn_p) p-values from Wilcoxon rank sum tests for each covariate when comparisons were made for all sites with steelhead redd densities in the upper quartile versus all other sites with redd observations."}
-# plot meadian and mean p-values
-tst_results %>%
-  group_by(hab_cov) %>%
-  summarise(Mean = mean(p_value, na.rm = T),
-            Median = median(p_value, na.rm = T)) %>%
-  ungroup() %>%
+# plot median and mean p-values
+p_results %>%
   gather(key, value, Mean:Median) %>%
   ggplot(aes(x = reorder(hab_cov, -value),
              y = value)) +
