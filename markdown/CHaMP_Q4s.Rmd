@@ -238,6 +238,17 @@ p_results %>%
 
 ```
 
+```{r chnk-sum-targets}
+# list of metrics to plot/summarize for scenario
+hab_list = c("Q", "Cond")
+
+# find datasets where hab_list were significant
+sig_hab_df = tst_results %>%
+  filter(hab_cov %in% hab_list,
+         sig == 1)
+
+```
+
 ### Winter presmolt
 
 ```{r chnk-win}
