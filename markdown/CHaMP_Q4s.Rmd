@@ -57,6 +57,8 @@ knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 library(tidyverse)
 library(ggplot2)
 library(janitor)
+library(purrr)
+library(ggpubr)
 
 # themes and settings
 theme_set(theme_bw())
@@ -135,6 +137,12 @@ tier_1s = as.character(unique(win_df$Tier1))
 # set alpha for wilcoxon rank sum tests
 alpha = 0.10
 
+# stuff for calculating quantiles
+cuts = c(0.25, 0.50, 0.75)
+cut_names = map_chr(cuts, ~paste0(.x*100, "%"))
+cut_funs = map(cuts, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
+  set_names(nm = cut_names)
+
 ```
 
 * Read in the appropriate dataset, according to life stage, using the `load_data()` function in *R/1_load_data.R*. Each dataset contains the following number of records: Summer parr (`r nrow(sum_df)`), winter presmolt (`r nrow(win_df)`), and adult spawning (`r nrow(spw_df)`). Each observation/record includes estimates of juvenile fish/redd abundance and density for a site paired with all of the habitat measurements collected for that site at the same spatial scale. For the summer parr and adult spawning life stages, the data are at the CHaMP site scale. For the winter presmolt life stage, data are at the channel unit scale.
@@ -180,13 +188,11 @@ n_dfs = length(df_list)
 # generate lists for evaluation & plotting
 metrics = metric_list(ls = ls)
 
-# generate lists for evaluation & plotting
-metrics = metric_list(ls = ls)
-
 # compare means by dataset and habitat covariate
 tst_results = wlcx_rs_test(df_list, metrics) %>%
   mutate(sig = ifelse(p_value <= alpha, 1, 0))
 
+# summary of # and p() of times each hab_cov was significant
 sig_results = tst_results %>%
   group_by(hab_cov) %>%
   summarise(sig_dfs = sum(sig, na.rm = T),
@@ -195,6 +201,7 @@ sig_results = tst_results %>%
   arrange(-sig_dfs) %>%
   filter(sig_dfs > 0)
 
+# summary of the mean and median p-value for each hab_cov
 p_results = tst_results %>%
   group_by(hab_cov) %>%
   summarise(Mean = mean(p_value, na.rm = T),
@@ -237,19 +244,22 @@ p_results %>%
        title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
-```
-
-```{r chnk-sum-targets}
 # list of metrics to plot/summarize for scenario
 hab_list = c("Q", 
-             "Cond")
+             "Cond",
+             "LWVol_WetFstTurb")
 
+```
+
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
+
+```{r chnk-sum-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for Chinook salmon, summer parr for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
          sig == 1)
   
-# plot for each significant covariate (in hab_list), faceted by dataset
+# pull data from the df_list for plotting for each hab_cov
 plot_data = sig_hab_df %>%
   rename(dataset = data) %>%
   as_tibble() %>%
@@ -262,7 +272,6 @@ plot_data = sig_hab_df %>%
                         select(hab_met = one_of(x), qrtl)
                        })) %>%
   select(dataset, hab_cov, plot_df) %>%
-  #mutate(dataset = strsplit(sub('(^[^_]+_[^_]+)_(.*)$', '\\2', dataset), ' ')) %>%
   unnest(cols = plot_df) %>%
   split(list(.$hab_cov))
 
@@ -270,19 +279,55 @@ plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
-      geom_density(aes(x = hab_met,
-                       fill = qrtl,
-                       color = qrtl),
-                   alpha = 0.3) +
+      geom_boxplot(aes(x = hab_cov,
+                       y = hab_met,
+                       #fill = qrtl,
+                       color = qrtl)) +
       scale_color_brewer(palette = "Set1",
                          name = 'Group') +
       scale_fill_brewer(palette = "Set1",
                         name = 'Group') +
-      labs(x = unique(x$hab_cov)) +
+      labs(x = unique(x$hab_cov),
+           y = "Value") +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) +
       facet_wrap(~ dataset,
-                 scales = 'free_y')
+                 scales = "free_y")
   })
-plot_list
+
+ggarrange(plotlist = plot_list,
+          ncol = 1,
+          nrow = length(hab_list))
+
+# plot_list = plot_data %>%
+#   map(.f = function(x) {
+#     x %>%
+#       ggplot() +
+#       geom_density(aes(x = hab_met,
+#                        fill = qrtl,
+#                        color = qrtl),
+#                    alpha = 0.3) +
+#       scale_color_brewer(palette = "Set1",
+#                          name = 'Group') +
+#       scale_fill_brewer(palette = "Set1",
+#                         name = 'Group') +
+#       labs(x = unique(x$hab_cov)) +
+#       facet_wrap(~ dataset,
+#                  scales = 'free_y')
+#   })
+# plot_list
+
+```
+
+```{r chnk-sum-table}
+plot_data %>%
+  bind_rows() %>%
+  group_by(hab_cov, qrtl) %>%
+  summarise_at(vars(hab_met),
+               funs(!!!cut_funs)) %>%
+  rename(`Habitat Covariate` = hab_cov,
+         `Group` = qrtl) %>%
+  kable(caption = "Quartiles, including medians (50%), for our habitat covariates of interest for this species x life stage scenario.")
 
 ```
 
@@ -361,18 +406,19 @@ p_results %>%
        title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
-```
-
-```{r chnk-win-targets}
 # list of metrics to plot/summarize for scenario
 hab_list = c("CU_Freq",
              "FishCovLW",
-             "Discharge",
              "FishCovAll",
-             "FishCovNone",
+             "Discharge",
              "Dpth_Max",
              "Temp")
 
+```
+
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:chnk-win-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:chnk-win-table) provides the quartiles, including medians, for those distributions.
+
+```{r chnk-win-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for Chinook salmon, winter presmolts for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
@@ -399,19 +445,37 @@ plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
-      geom_density(aes(x = hab_met,
-                       fill = qrtl,
-                       color = qrtl),
-                   alpha = 0.3) +
+      geom_boxplot(aes(x = hab_cov,
+                       y = hab_met,
+                       #fill = qrtl,
+                       color = qrtl)) +
       scale_color_brewer(palette = "Set1",
                          name = 'Group') +
       scale_fill_brewer(palette = "Set1",
                         name = 'Group') +
-      labs(x = unique(x$hab_cov)) +
+      labs(x = unique(x$hab_cov),
+           y = "Value") +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) +
       facet_wrap(~ dataset,
-                 scales = 'free_y')
+                 scales = "free_y")
   })
-plot_list
+
+ggarrange(plotlist = plot_list,
+          ncol = 1,
+          nrow = length(hab_list))
+
+```
+
+```{r chnk-win-table}
+plot_data %>%
+  bind_rows() %>%
+  group_by(hab_cov, qrtl) %>%
+  summarise_at(vars(hab_met),
+               funs(!!!cut_funs)) %>%
+  rename(`Habitat Covariate` = hab_cov,
+         `Group` = qrtl) %>%
+  kable(caption = "Quartiles, including medians (50%), for our habitat covariates of interest for this species x life stage scenario.")
 
 ```
 
@@ -490,12 +554,17 @@ p_results %>%
        title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
+# list of metrics to plot/summarize for scenario
+hab_list = c("SubD84",
+             "FstNT_Pct",
+             "LWVol_WetSlow",
+             "SubEstGrvl")
+
 ```
 
-```{r chnk-spw-targets}
-# list of metrics to plot/summarize for scenario
-hab_list = c("SubD84")
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:chnk-spw-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:chnk-spw-table) provides the quartiles, including medians, for those distributions.
 
+```{r chnk-spw-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for Chinook salmon, adult spawning for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
@@ -522,19 +591,37 @@ plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
-      geom_density(aes(x = hab_met,
-                       fill = qrtl,
-                       color = qrtl),
-                   alpha = 0.3) +
+      geom_boxplot(aes(x = hab_cov,
+                       y = hab_met,
+                       #fill = qrtl,
+                       color = qrtl)) +
       scale_color_brewer(palette = "Set1",
                          name = 'Group') +
       scale_fill_brewer(palette = "Set1",
                         name = 'Group') +
-      labs(x = unique(x$hab_cov)) +
+      labs(x = unique(x$hab_cov),
+           y = "Value") +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) +
       facet_wrap(~ dataset,
-                 scales = 'free_y')
+                 scales = "free_y")
   })
-plot_list
+
+ggarrange(plotlist = plot_list,
+          ncol = 1,
+          nrow = length(hab_list))
+
+```
+
+```{r chnk-spw-table}
+plot_data %>%
+  bind_rows() %>%
+  group_by(hab_cov, qrtl) %>%
+  summarise_at(vars(hab_met),
+               funs(!!!cut_funs)) %>%
+  rename(`Habitat Covariate` = hab_cov,
+         `Group` = qrtl) %>%
+  kable(caption = "Quartiles, including medians (50%), for our habitat covariates of interest for this species x life stage scenario.")
 
 ```
 
@@ -616,12 +703,17 @@ p_results %>%
        title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
+# list of metrics to plot/summarize for scenario
+hab_list = c("RipCovGrndNone",
+             "SubD84",
+             "SlowWater_Pct",
+             "Grad")
+
 ```
 
-```{r sthd-sum-targets}
-# list of metrics to plot/summarize for scenario
-hab_list = c("RipCovGrndNone")
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:sthd-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:sthd-sum-table) provides the quartiles, including medians, for those distributions.
 
+```{r sthd-sum-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for steelhead, summer parr for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
@@ -648,19 +740,37 @@ plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
-      geom_density(aes(x = hab_met,
-                       fill = qrtl,
-                       color = qrtl),
-                   alpha = 0.3) +
+      geom_boxplot(aes(x = hab_cov,
+                       y = hab_met,
+                       #fill = qrtl,
+                       color = qrtl)) +
       scale_color_brewer(palette = "Set1",
                          name = 'Group') +
       scale_fill_brewer(palette = "Set1",
                         name = 'Group') +
-      labs(x = unique(x$hab_cov)) +
+      labs(x = unique(x$hab_cov),
+           y = "Value") +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) +
       facet_wrap(~ dataset,
-                 scales = 'free_y')
+                 scales = "free_y")
   })
-plot_list
+
+ggarrange(plotlist = plot_list,
+          ncol = 1,
+          nrow = length(hab_list))
+
+```
+
+```{r sthd-sum-table}
+plot_data %>%
+  bind_rows() %>%
+  group_by(hab_cov, qrtl) %>%
+  summarise_at(vars(hab_met),
+               funs(!!!cut_funs)) %>%
+  rename(`Habitat Covariate` = hab_cov,
+         `Group` = qrtl) %>%
+  kable(caption = "Quartiles, including medians (50%), for our habitat covariates of interest for this species x life stage scenario.")
 
 ```
 
@@ -739,17 +849,18 @@ p_results %>%
        title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
-```
-
-```{r sthd-win-targets}
 # list of metrics to plot/summarize for scenario
 hab_list = c("FishCovLW",
              "CU_Freq",
              "FishCovAll",
-             "FishCovNone",
              "Discharge",
              "Dpth_Max")
 
+```
+
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:sthd-win-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:sthd-win-table) provides the quartiles, including medians, for those distributions.
+
+```{r sthd-win-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for steelhead, winter presmolts for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
@@ -776,19 +887,37 @@ plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
-      geom_density(aes(x = hab_met,
-                       fill = qrtl,
-                       color = qrtl),
-                   alpha = 0.3) +
+      geom_boxplot(aes(x = hab_cov,
+                       y = hab_met,
+                       #fill = qrtl,
+                       color = qrtl)) +
       scale_color_brewer(palette = "Set1",
                          name = 'Group') +
       scale_fill_brewer(palette = "Set1",
                         name = 'Group') +
-      labs(x = unique(x$hab_cov)) +
+      labs(x = unique(x$hab_cov),
+           y = "Value") +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) +
       facet_wrap(~ dataset,
-                 scales = 'free_y')
+                 scales = "free_y")
   })
-plot_list
+
+ggarrange(plotlist = plot_list,
+          ncol = 1,
+          nrow = length(hab_list))
+
+```
+
+```{r sthd-win-table}
+plot_data %>%
+  bind_rows() %>%
+  group_by(hab_cov, qrtl) %>%
+  summarise_at(vars(hab_met),
+               funs(!!!cut_funs)) %>%
+  rename(`Habitat Covariate` = hab_cov,
+         `Group` = qrtl) %>%
+  kable(caption = "Quartiles, including medians (50%), for our habitat covariates of interest for this species x life stage scenario.")
 
 ```
 
@@ -867,12 +996,17 @@ p_results %>%
        title = paste0(spc, " ", ls, "; ", n_dfs, " datasets")) +
   facet_wrap(~ key)
 
+# list of metrics to plot/summarize for scenario
+hab_list = c("Elev_M",
+             "SubEstGrvl",
+             "SubD50",
+             "NatPrin2")
+
 ```
 
-```{r sthd-spw-targets}
-# list of metrics to plot/summarize for scenario
-hab_list = c("Elev")
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:sthd-spw-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:sthd-spw-table) provides the quartiles, including medians, for those distributions.
 
+```{r sthd-spw-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for steelhead, adult spawning for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
 sig_hab_df = tst_results %>%
   filter(hab_cov %in% hab_list,
@@ -899,21 +1033,40 @@ plot_list = plot_data %>%
   map(.f = function(x) {
     x %>%
       ggplot() +
-      geom_density(aes(x = hab_met,
-                       fill = qrtl,
-                       color = qrtl),
-                   alpha = 0.3) +
+      geom_boxplot(aes(x = hab_cov,
+                       y = hab_met,
+                       #fill = qrtl,
+                       color = qrtl)) +
       scale_color_brewer(palette = "Set1",
                          name = 'Group') +
       scale_fill_brewer(palette = "Set1",
                         name = 'Group') +
-      labs(x = unique(x$hab_cov)) +
+      labs(x = unique(x$hab_cov),
+           y = "Value") +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) +
       facet_wrap(~ dataset,
-                 scales = 'free_y')
+                 scales = "free_y")
   })
-plot_list
+
+ggarrange(plotlist = plot_list,
+          ncol = 1,
+          nrow = length(hab_list))
 
 ```
+
+```{r sthd-spw-table}
+plot_data %>%
+  bind_rows() %>%
+  group_by(hab_cov, qrtl) %>%
+  summarise_at(vars(hab_met),
+               funs(!!!cut_funs)) %>%
+  rename(`Habitat Covariate` = hab_cov,
+         `Group` = qrtl) %>%
+  kable(caption = "Quartiles, including medians (50%), for our habitat covariates of interest for this species x life stage scenario.")
+
+```
+
 
 # Discussion
 
