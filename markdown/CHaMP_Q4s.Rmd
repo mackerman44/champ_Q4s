@@ -12,6 +12,16 @@ author:
     email: richard.carmichael@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
+  bookdown::word_document2:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7
+    toc: yes
+    pandoc_args:
+      - --lua-filter=../templates/scholarly-metadata.lua
+      - --lua-filter=../templates/author-info-blocks.lua
+      - --lua-filter=../templates/pagebreak.lua
+    reference_docx: "../templates/ReportTemplate.docx"
   bookdown::html_document2:
     smart: false
     theme: flatly
@@ -33,16 +43,6 @@ output:
       - --lua-filter=../templates/scholarly-metadata.lua
       - --lua-filter=../templates/author-info-blocks2.lua
       - --lua-filter=../templates/pagebreak.lua
-  bookdown::word_document2:
-    fig_caption: yes
-    fig_height: 4
-    fig_width: 7
-    toc: yes
-    pandoc_args:
-      - --lua-filter=../templates/scholarly-metadata.lua
-      - --lua-filter=../templates/author-info-blocks.lua
-      - --lua-filter=../templates/pagebreak.lua
-    reference_docx: "../templates/ReportTemplate.docx"
 institute:
   - biomark: Biomark, Inc.
 csl: "../templates/american-fisheries-society.csl"
@@ -251,7 +251,7 @@ hab_list = c("Q",
 
 ```
 
-The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` and all other sites with lower densities. Let's examine some of the habitat covariates that were significant in a high proportion of cases, had a low median p-value, or some combination of both and might be informative for habitat rehabilitation. Here, we'll examine the following a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
 
 ```{r chnk-sum-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for Chinook salmon, summer parr for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
@@ -411,12 +411,11 @@ hab_list = c("CU_Freq",
              "FishCovLW",
              "FishCovAll",
              "Discharge",
-             "Dpth_Max",
-             "Temp")
+             "Dpth_Max")
 
 ```
 
-The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:chnk-win-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:chnk-win-table) provides the quartiles, including medians, for those distributions.
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` and all other sites with lower densities. Let's examine some of the habitat covariates that were significant in a high proportion of cases, had a low median p-value, or some combination of both and might be informative for habitat rehabilitation. Here, we'll examine the following a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
 
 ```{r chnk-win-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for Chinook salmon, winter presmolts for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
@@ -562,7 +561,7 @@ hab_list = c("SubD84",
 
 ```
 
-The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:chnk-spw-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:chnk-spw-table) provides the quartiles, including medians, for those distributions.
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` and all other sites with lower densities. Let's examine some of the habitat covariates that were significant in a high proportion of cases, had a low median p-value, or some combination of both and might be informative for habitat rehabilitation. Here, we'll examine the following a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
 
 ```{r chnk-spw-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for Chinook salmon, adult spawning for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
@@ -711,7 +710,7 @@ hab_list = c("RipCovGrndNone",
 
 ```
 
-The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:sthd-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:sthd-sum-table) provides the quartiles, including medians, for those distributions.
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` and all other sites with lower densities. Let's examine some of the habitat covariates that were significant in a high proportion of cases, had a low median p-value, or some combination of both and might be informative for habitat rehabilitation. Here, we'll examine the following a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
 
 ```{r sthd-sum-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for steelhead, summer parr for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
@@ -858,7 +857,7 @@ hab_list = c("FishCovLW",
 
 ```
 
-The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:sthd-win-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:sthd-win-table) provides the quartiles, including medians, for those distributions.
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` and all other sites with lower densities. Let's examine some of the habitat covariates that were significant in a high proportion of cases, had a low median p-value, or some combination of both and might be informative for habitat rehabilitation. Here, we'll examine the following a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
 
 ```{r sthd-win-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for steelhead, winter presmolts for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
@@ -1004,7 +1003,7 @@ hab_list = c("Elev_M",
 
 ```
 
-The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` and all other sites with lower densities. Let's examine some of those habitat covariates a little further: `r hab_list`. Figure \@ref(fig:sthd-spw-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")` `r if(ls == "sum") "summer parr"; if(ls == "win") "winter presmolt"; if(ls == "spw") "adult spawning"` for those habitat covariates. Additionally, Table \@ref(tab:sthd-spw-table) provides the quartiles, including medians, for those distributions.
+The above results give us some idea of those habitat covariates that seem to vary between sites with high observed densities for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` and all other sites with lower densities. Let's examine some of the habitat covariates that were significant in a high proportion of cases, had a low median p-value, or some combination of both and might be informative for habitat rehabilitation. Here, we'll examine the following a little further: `r hab_list`. Figure \@ref(fig:chnk-sum-targets) shows the distributions of those habitat covariates comparing sites with high densities (Q4) with lower densities (Rest) for each case where the means were found to be significantly different ($\alpha =$ `r alpha`). These plots could be used to infer target conditions for `r ifelse(spc == "chnk", "Chinook salmon", "steelhead")`, `r if_else(ls == "sum", "summer parr", if_else(ls == "win", "winter presmolt", "adult spawning"))` for those habitat covariates. Additionally, Table \@ref(tab:chnk-sum-table) provides the quartiles, including medians, for those distributions.
 
 ```{r sthd-spw-targets, fig.height = length(hab_list)*4, fig.cap = "Boxplots comparing the distribution of our habitat covariates of interest for steelhead, adult spawning for each dataset where comparisons of the means were significant using the Wilcoxon rank sum test. The Q4 group includes those sites with observed densities in the upper quartile whereas the Rest group includes all other sites with lower densities. The box shows the median and the first and third quartiles (i.e. the 25th and 75th percentiles.)."}
 # find datasets where hab_list were significant
@@ -1070,8 +1069,47 @@ plot_data %>%
 
 # Discussion
 
-Discussion text...
+## Chinook salmon
 
+### Summer parr
+
+Both Q (Discharge; $\frac{m^3}{sec}$) and Cond (Conductivity; $\frac{\mu S}{sec}$) were found to have differing means between the "Q4" sites and "Rest" sites in greater than half of datasets evaluated, and further, had a median p-value less than our $\alpha =$ `r alpha`. Conductivity tended to be lesser in the "Q4" sites while discharge tended to be higher (with the exception of the Minam River dataset; Figure \@ref(fig:chnk-sum-targets)). However, neither Q or Cond can necessarily be modified by restoration actions. 
+
+Of interest, though, is that LWVol_WetFstTurb or the total volume ($m^3$) of large wood pieces within the wetted channel and fast water turbulent channel units also had a very low median p-value and was higher in 3 of 4 datasets where the p-value was significant (Figure \@ref(fig:chnk-sum-targets)). 
+
+### Winter presmolt
+
+For Chinook salmon, winter presmolts, five habitat covariates had significantly different means in greater than half of datasets evaluated and a median p-value of less than $\alpha =$ `r alpha`. These included: CU_Freq, FishCovLW, FishCovNone, FishCovAll, and Discharge. 
+
+* **CU_Freq**: Channel unit frequency measured as the count of channel units per 100 meters. The means of CU_Freq between "Q4" and "Rest" sites were different in all datasets (Figure \@ref(fig:chnk-win-sig-tests)) and CU_Freq for the "Q4" sites were higher in all cases (Figure \@ref(fig:chnk-win-targets)). For the sites with high observed densities the median CU_Freq was 5.7 channel units per 100 meters whereas the median value for all other sites was 3.3. Channel unit frequency is a good indicator of channel complexity and a higher CU_Freq appears to support higher densities of juvenile Chinook salmon during winter months.
+
+* **FishCovLW, FishCovNone, FishCovAll**: As FishCovNone (% of channel unit with no fish cover) and FishCovAll (% of setted area with the following types of cover: aquatic vegetation, artificial, woody debris, and terrestrial vegetation) are essentially the inverse of each other, we focus on FishCovAll here as it tends to be more intuitive. FishCovAll and FishCovLW (% of wetted area that has woody debris as fish cover) means were significantly higher in sites with high juvenile fish densities in a large proportion of cases (Figure \@ref(fig:chnk-win-targets)). It is not surprising that sites with increased fish cover tended to have higher observed densities for juvenile Chinook salmon during winter months. Increasing fish cover, in all channel unit types, should be considered when attempting to increase habitat capacity for juvenile Chinook salmon in winter months.
+
+* **Discharge**: Discharge was also found to be significant in a high proportion of cases and tended to be lower in "Q4" sites (Figure \@ref(fig:chnk-win-targets)), with the exception of the Entiat River dataset. However, discharge is another metric that cannot necessarily be modified by restoration activities.
+
+In addition, Dpth_Max was significant in half of the datasets evaluated and so was examined further. The Dpth_Max was significantly lower for the "Q4" sites in three (pool, riffle, run) channel unit type datasets, but was higher in the Upper Grande Ronde dataset (Figure \@ref(fig:chnk-win-targets)). Dpth_Max is the maximum depth of the wetted channel unit in meters. 
+
+### Adult spawning
+
+Here, we examined 4 habitat covariates further:
+
+* **FstNT_Pct**: Or fast non-turbulent % is the percentage of the wetted area identified as fast water non-turbulent channel units. FstNT_Pct was higher in most cases with higher observed redd densities with the exception of the Entiat River dataset (Figure \@ref(fig:chnk-spw-targets)). 
+
+* **LWVol_WetSlow**: Large wood volume in wetted, slow water measured as the total volume of large wood pieces within the wetted channel and slower water/pool channel units. LWVol_WetSlow tended to be higher in "Q4" sites with higher observed redd densities (Figure \@ref(fig:chnk-spw-targets)). Intuitively, this makes sense as redds are typically constructed in pool-riffle sequences and large, woody cover in those pools would support better cover during adult holding.
+ 
+* **SubD84**: The diameter of the 84th percentile particle derived from pebble counts. SubD84 tended to be smaller in the "Q4" sites with higher redd densities (Figure \@ref(fig:chnk-spw-targets)).
+
+* **SubEstGrvl**: The percent of coarse and fine gravel (2-64 mm) within the wetted site area. Opposite of SubD84, SubEstGrvl was higher in the "Q4" sites for all cases where the means were different between sites (Figure \@ref(fig:chnk-spw-targets)). 
+
+## Steelhead
+
+### Summer parr
+
+### Winter presmolt
+
+### Adult spawning
+
+## Conclusions
 
 # Literature Cited
 
