@@ -12,16 +12,6 @@ author:
     email: richard.carmichael@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  bookdown::word_document2:
-    fig_caption: yes
-    fig_height: 4
-    fig_width: 7
-    toc: yes
-    pandoc_args:
-      - --lua-filter=../templates/scholarly-metadata.lua
-      - --lua-filter=../templates/author-info-blocks.lua
-      - --lua-filter=../templates/pagebreak.lua
-    reference_docx: "../templates/ReportTemplate.docx"
   bookdown::html_document2:
     smart: false
     theme: flatly
@@ -34,6 +24,16 @@ output:
       - --lua-filter=../templates/scholarly-metadata.lua
       - --lua-filter=../templates/author-info-blocks.lua
       - --lua-filter=../templates/pagebreak.lua
+  bookdown::word_document2:
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7
+    toc: yes
+    pandoc_args:
+      - --lua-filter=../templates/scholarly-metadata.lua
+      - --lua-filter=../templates/author-info-blocks.lua
+      - --lua-filter=../templates/pagebreak.lua
+    reference_docx: "../templates/ReportTemplate.docx"
   bookdown::pdf_document2:
     fig_height: 6
     fig_width: 8
@@ -996,10 +996,8 @@ p_results %>%
   facet_wrap(~ key)
 
 # list of metrics to plot/summarize for scenario
-hab_list = c("Elev_M",
-             "SubEstGrvl",
-             "SubD50",
-             "NatPrin2")
+hab_list = c("SubEstGrvl",
+             "SubD50")
 
 ```
 
@@ -1105,11 +1103,37 @@ Here, we examined 4 habitat covariates further:
 
 ### Summer parr
 
+In the case of steelhead, summer parr, there was only a single habitat covariate, RipCovGrndNone, that was significant in $\geq$ half of the datasets evaluated (Figure \@ref(fig:sthd-sum-sig-tests)), and although not below, its median p-value was near the $\alpha =$ `r alpha` (Figure \@ref(fig:sthd-sum-p-val)). In addition, there were three additional habitat covariates that were significant in nearly half of the datasets evaluated that may be of interest for habitat rehabilitation: Grad, SlowWater_Pct, SubD84. We examined these covariates a little further:
+
+* **Grad**: Site water surface gradient calculated as the difference between the top of site (upstream) and bottom of site (downstream) water surface elevations divided by thalweg length. Gradient was higher in 4 of 5 significant comparisons (Figure \@ref(fig:sthd-sum-targets)), except importantly, the Lemhi River.
+
+* **RipCovGrndNone**: The % of groundcover devoid in vegetation. RipCovGrndNone tended to be higher in the "Q4" sites with higher estimated juvenile densities (Figure \@ref(fig:sthd-sum-targets)) except in the Lemhi River. Results here seem inconclusive.
+
+* **SlowWater_Pct**: The % of the wetted area identified as slow water/pool channel units. Of most interest here, areas in the with higher estimated juvenile *O. mykiss* densities in the Lemhi River tended to have a higher SlowWater_Pct (Figure \@ref(fig:sthd-sum-targets)). 
+
+* **SubD84**: The diameter of the 84$^{th}$ percentile particle derived from pebble counts. In all cases except for the *confined* channel unit type, the SubD84 was higher in those sites with high estimated juvenile densities (Figure \@ref(fig:sthd-sum-targets)). This does seem to make some sense as we typically observe larger substrate in areas considered to be optimal *O. mykiss* juvenile rearing.
+
 ### Winter presmolt
+
+In this case there were 6 habitat covariates that were significantly different between the "Q4" sites and "Rest" sites in $\geq$ half of the datasets evaluated and had a median p-value less than or equal to our $\alpha =$ `r alpha`: CU_Freq, Discharge, Dpth_Max, FishCovNone, FishCovAll, and FishCovLW. Here we look at 5 of those a little further (as FishCovNone and FishCovAll are nearly inverses of each other):
+
+* **CU_Freq**: The count of channel units per 100 meters. Similar to Chinook salmon, the mean of CU_Freq was higher in all cases among "Q4" sites with higher estimated juvenile steelhead densities (Figure \@ref(fig:sthd-win-targets)). The median CU_Freq among "Q4" sites was 6.6 whereas it was 3.6 in all other lower density sites. CU_Freq seems to be a good indicator of channel complexity and higher CU_Freq appears to be associated with better winter rearing.
+
+* **Discharge**: Discharge was lower for the "Q4" sites for every dataset in which the mean discharges were significantly different (Figure \@ref(fig:sthd-win-targets)).
+
+* **Dpth_Max**: The maximum depth in meters tended to be lower in the "Q4" sites, except in the case of the Lemhi River (Figure \@ref(fig:sthd-win-targets)). Note that all of the comparisons where Dpth_Max was lower in the "Q4" sites was when the data was examined by channel type.
+
+* **FishCovAll**, **FishCovLW**: FishCovAll and FishCovLW were higher, in every case, for the "Q4" sites with high juvenile *O. mykiss* densities during winter months. The same was observed for Chinook salmon, winter rearing. Fish cover, as large wood or in any form, seem to be associated with better winter rearing and should be considered during habitat rehabilitation.
 
 ### Adult spawning
 
+For steelhead, adult spawning, Elev_M was the only habitat covariate that was found to be significant in more than half of cases between the high density "Q4" sites and all other "Rest" sites (Figure \@ref(fig:sthd-spw-sig-tests)) and had a median p-value of less than the $\alpha =$ `r alpha` (Figure \@ref(fig:sthd-spw-p-val)). However, elevation cannot be modified by restoration actions; instead, there were two substrate metrics that ranked high that we consider further. **SubD50** was typically higher and **SubEstGrvl** lower in the "Q4" sites in comparisons where the means were significantly different. However, it should be noted, that in each case, comparisons were only significant in 3 cases: Asotin, Entiat, and Island Braided (Figure \@ref(fig:sthd-spw-targets)).
+
+
 ## Conclusions
+
+This exploratory analysis was first initiated in an attempt to examine if there were particular habitat characteristics that were consistently associated with high juvenile or redd densities. If a given habitat characteristic was consistently correlated with high densities, then perhaps examining that characteristic could be used to describe target conditions for habitat rehabilitation. As a prime example, **FishCovAll** was consistently higher for winter rearing, for both Chinook salmon and steelhead, in those areas with the highest juvenile densities. This suggests that fish cover might be of particular interest when trying to improve habitat for winter rearing. Same goes for *CU_Freq* or channel unit frequency per each 100 meters; channel unit frequency was higher in all cases where juvenile densities were higher (Figures \@ref(fig:chnk-win-targets) and \@ref(fig:sthd-win-targets)).
+
 
 # Literature Cited
 
